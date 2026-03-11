@@ -45,6 +45,13 @@ jobs:
           USER_NAME = manna-harbour_miryoku
           EOF
 
+      - name: Create config.h
+        run: |
+          cat > ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku/config.h << 'EOF'
+          #pragma once
+          #define MIRYOKU_MAPPING LAYOUT
+          EOF
+
       - name: Verify Miryoku files copied
         run: ls ~/qmk_firmware/users/manna-harbour_miryoku/
 
