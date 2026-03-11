@@ -1,11 +1,54 @@
-# Copyright 2021 Manna Harbour
-# https://github.com/manna-harbour/miryoku
+name: Merge QMK Master and Build
 
-name: 'Build Keebio Iris (GB Edited)'
 on:
-  - workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      keyboard:
+        description: 'Keyboard (e.g. keebio/iris/rev8)'
+        required: true
+        default: 'keebio/iris/rev8'
+      alphas:
+        description: 'Alpha layout (e.g. QWERTY or COLEMAK_DH)'
+        required: false
+        default: 'QWERTY'
+
 jobs:
-  build:
-    uses: ./.github/workflows/main.yml
-    with:
-      keyboard: '["keebio/iris/rev7"]'
+  merge-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Miryoku QMK
+        uses: actions/checkout@v3
+        with:
+          repository: manna-harbour/miryoku_qmk
+          ref: miryoku
+          fetch-depth: 0
+
+      - name: Merge QMK Master
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git remote add qmk https://github.com/qmk/qmk_firmware.git
+          git fetch qmk master
+          git merge qmk/master --allow-unrelated-histories -X theirs --no-edit
+
+      - name: Set up QMK
+        run: |
+          pip install qmk
+          qmk setup --yes
+
+      - name: Build firmware
+        run: |
+          qmk compile -c \
+            -kb ${{ github.event.inputs.keyboard }} \
+            -km manna-harbour_miryoku \
+            -e MIRYOKU_ALPHAS=${{ github.event.inputs.alphas }}
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware
+          path: |
+            *.uf2
+            *.hex
+            *.bin
