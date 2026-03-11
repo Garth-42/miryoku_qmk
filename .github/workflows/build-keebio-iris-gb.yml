@@ -38,13 +38,18 @@ jobs:
           cat > ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku/keymap.c << 'EOF'
           #define MIRYOKU_KEYBOARD_H "manna-harbour_miryoku/miryoku.h"
           #include MIRYOKU_KEYBOARD_H
+          #include "manna-harbour_miryoku/miryoku.h"
           EOF
 
       - name: Create rules.mk
         run: |
           cat > ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku/rules.mk << 'EOF'
           USER_NAME = manna-harbour_miryoku
+          SRC += manna-harbour_miryoku/miryoku.c
           EOF
+
+      - name: Verify Miryoku files copied
+        run: ls ~/qmk_firmware/users/manna-harbour_miryoku/
 
       - name: Build firmware
         run: |
