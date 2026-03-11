@@ -78,6 +78,12 @@ jobs:
       - name: Verify Miryoku files copied
         run: ls ~/qmk_firmware/users/manna-harbour_miryoku/
 
+      - name: Debug Miryoku header
+        run: |
+          cat ~/qmk_firmware/users/manna-harbour_miryoku/manna-harbour_miryoku.h
+          echo "---"
+          cat ~/qmk_firmware/users/manna-harbour_miryoku/miryoku_babel/miryoku_layer_selection.h
+
       - name: Build firmware
         run: |
           qmk compile \
