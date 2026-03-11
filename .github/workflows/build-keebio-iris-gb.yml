@@ -1,54 +1,58 @@
-name: Merge QMK Master and Build
+name: Build Miryoku for Iris Rev8
 
 on:
   workflow_dispatch:
     inputs:
-      keyboard:
-        description: 'Keyboard (e.g. keebio/iris/rev8)'
-        required: true
-        default: 'keebio/iris/rev8'
       alphas:
         description: 'Alpha layout (e.g. QWERTY or COLEMAK_DH)'
         required: false
         default: 'QWERTY'
 
 jobs:
-  merge-and-build:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Miryoku QMK
-        uses: actions/checkout@v3
-        with:
-          repository: manna-harbour/miryoku_qmk
-          ref: miryoku
-          fetch-depth: 0
+      - name: Install QMK CLI
+        run: pip install qmk
 
-      - name: Merge QMK Master
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-          git remote add qmk https://github.com/qmk/qmk_firmware.git
-          git fetch qmk master
-          git merge qmk/master --allow-unrelated-histories -X theirs --no-edit
+      - name: Setup QMK (clones qmk_firmware master)
+        run: qmk setup --yes
 
-      - name: Set up QMK
+      - name: Clone Miryoku QMK
+        run: git clone https://github.com/manna-harbour/miryoku_qmk.git -b miryoku /tmp/miryoku
+
+      - name: Copy Miryoku user files into QMK
+        run: cp -r /tmp/miryoku/users/manna-harbour_miryoku ~/qmk_firmware/users/
+
+      - name: Create keymap directory
+        run: mkdir -p ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku
+
+      - name: Create keymap.c
         run: |
-          pip install qmk
-          qmk setup --yes
+          cat > ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku/keymap.c << 'EOF'
+          #define MIRYOKU_KEYBOARD_H "manna-harbour_miryoku/miryoku.h"
+          #include MIRYOKU_KEYBOARD_H
+          EOF
+
+      - name: Create rules.mk
+        run: |
+          cat > ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku/rules.mk << 'EOF'
+          USER_NAME = manna-harbour_miryoku
+          EOF
 
       - name: Build firmware
         run: |
-          qmk compile -c \
-            -kb ${{ github.event.inputs.keyboard }} \
+          qmk compile \
+            -kb keebio/iris/rev8 \
             -km manna-harbour_miryoku \
             -e MIRYOKU_ALPHAS=${{ github.event.inputs.alphas }}
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware
+          name: miryoku-iris-rev8
           path: |
-            *.uf2
-            *.hex
-            *.bin
+            ~/qmk_firmware/*.uf2
+            ~/qmk_firmware/*.hex
+            ~/qmk_firmware/*.bin
