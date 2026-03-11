@@ -49,7 +49,29 @@ jobs:
         run: |
           cat > ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku/config.h << 'EOF'
           #pragma once
-          #define MIRYOKU_MAPPING LAYOUT
+          #define MIRYOKU_MAPPING LAYOUT_miryoku
+          EOF
+      - name: Create layout mapping
+        run: |
+          cat > ~/qmk_firmware/keyboards/keebio/iris/rev8/keymaps/manna-harbour_miryoku/miryoku_custom_config.h << 'EOF'
+          #pragma once
+          #define LAYOUT_miryoku( \
+          L00, L01, L02, L03, L04, \
+          L10, L11, L12, L13, L14, \
+          L20, L21, L22, L23, L24, \
+               L31, L32, L33,      \
+          R00, R01, R02, R03, R04, \
+          R10, R11, R12, R13, R14, \
+          R20, R21, R22, R23, R24, \
+               R31, R32, R33       \
+          ) \
+          LAYOUT( \
+          KC_NO, L00, L01, L02, L03, L04,    R00, R01, R02, R03, R04, KC_NO, \
+          KC_NO, L10, L11, L12, L13, L14,    R10, R11, R12, R13, R14, KC_NO, \
+          KC_NO, L20, L21, L22, L23, L24,    R20, R21, R22, R23, R24, KC_NO, \
+          KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, \
+                              L31, L32, L33, R31, R32, R33 \
+          )
           EOF
 
       - name: Verify Miryoku files copied
